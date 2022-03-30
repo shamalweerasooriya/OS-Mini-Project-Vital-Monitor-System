@@ -15,7 +15,7 @@ public class VitalMonitor {
 
         // Get the IP address of the running computer
         ipAddress = getIPAddressOfComputer();
-//        System.out.println("IP: " + ipAddress + ", Port: " + port + ", ID: " + monitorId);
+        System.out.println("IP: " + ipAddress + ", Port: " + port + ", ID: " + monitorId);
 
         // Create a new vital monitor
         Monitor monitor = new Monitor(ipAddress, monitorId, port);
@@ -33,6 +33,10 @@ public class VitalMonitor {
         while (true) {
             broadcastMonitorIdentity(monitorInBytes, ipAddress, BROADCAST_PORT, broadcastSocket);
         }
+
+        // for (int i = 0; i < 10; i++) {
+        //     broadcastMonitorIdentity(monitorInBytes, ipAddress, BROADCAST_PORT, broadcastSocket);
+        // }
 
     }
 
