@@ -15,10 +15,21 @@ public class Gateway {
         DatagramSocket recvSocket = createRecvSocket(UDP_RCV_PORT);
 
         // receive broadcast messages
-        DatagramPacket recvPacket = recvPacket(recvSocket);
+        // DatagramPacket recvPacket = recvPacket(recvSocket);
 
         // print ip address and port of the monitor
-        printIPAndPort(recvPacket);
+        // printIPAndPort(recvPacket);
+
+        // keep receiving broadcast messages and create a tcp connection to the monitor
+        while (true) {
+            // receive broadcast messages
+            DatagramPacket recvPacket = recvPacket(recvSocket);
+
+            // print ip address and port of the monitor
+            printIPAndPort(recvPacket);
+
+            // create a tcp connection to the monitor
+        }
 
         // try {
         //     recvSocket = new DatagramSocket(UDP_RCV_PORT);
