@@ -50,28 +50,6 @@ public class Gateway {
 
         }
 
-        // try {
-        //     recvSocket = new DatagramSocket(UDP_RCV_PORT);
-
-        //     // receive broadcast messages
-        //     byte[] recvBuf = new byte[1024];
-        //     DatagramPacket recvPacket = new DatagramPacket(recvBuf, recvBuf.length);
-        //     recvSocket.receive(recvPacket);
-
-        //     // byte array input stream
-        //     ByteArrayInputStream bis = new ByteArrayInputStream(recvPacket.getData());
-        //     ObjectInputStream ois = new ObjectInputStream(bis);
-
-        //     // get monitor object from the received packet
-        //     Monitor monitor = (Monitor) ois.readObject();
-
-        //     // print ip address and port number
-        //     System.out.println("IP: " + monitor.getIp() + ", Port: " + monitor.getPort());
-        // }
-        // catch (Exception e) {
-        //     e.printStackTrace();
-        // }
-
     }
     
     private static DatagramSocket createRecvSocket(int UDP_RCV_PORT) {
