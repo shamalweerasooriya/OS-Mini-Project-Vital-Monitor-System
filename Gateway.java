@@ -11,13 +11,12 @@ import java.net.Socket;
 import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.List;
-
 import javax.xml.transform.OutputKeys;
 
 // This is the gateway server to listen for monitor requests and create a tcp connection to the monitor.
 public class Gateway {
-    // create a list to store monitor objects
-    static List<Monitor> monitorList = new ArrayList<Monitor>();
+    // create a list to store ip address and port of monitors
+    static private List<String> monitors = new ArrayList<String>();
 
     // listen broadcast messages from vital monitors on port 6000
     public static void main(String[] args) {
@@ -35,17 +34,25 @@ public class Gateway {
             // get the monitor object from the received packet
             Monitor monitor = getMonitor(recvPacket);
 
+            // get the ip address and port of the monitor
+            InetAddress ipAddress = monitor.getIp();
+            int port = monitor.getPort();
+
+
             // check if the monitor is already in the list
-            if (!monitorList.contains(monitor)) {
+            if (!monitors.contains(ipAddress + ":" + port)) {
                 // add the monitor to the list
-                monitorList.add(monitor);
+                monitors.add(ipAddress + ":" + port);
+
+                // print the monitor information
+                System.out.println("Establishing connection to monitor at: " + ipAddress + ":" + port);
 
                 // create tcp thread to connect to the monitor
                 Thread tcpConnection = new Thread(new Runnable() {
                     @Override
                     public void run() {
                         // create a tcp connection to the monitor
-                        createTcpConnection(recvPacket);
+                        createTcpConnection(ipAddress, port, monitor.getMonitorID());
                     }
                 });
 
@@ -109,62 +116,52 @@ public class Gateway {
     }
 
     // create a tcp connection to the monitor
-    private static void createTcpConnection(DatagramPacket recvPacket) {
+    private static void createTcpConnection(InetAddress ip, int port, String id) {
         try {
-            // byte array input stream
-            ByteArrayInputStream bis = new ByteArrayInputStream(recvPacket.getData());
-            ObjectInputStream ois = new ObjectInputStream(bis);
+            // save ip address, port number and id of the monitor
+            // InetAddress ip = monitor.getIp();
+            // int port = monitor.getPort();
+            // String id = monitor.getMonitorID();
 
-            // get monitor object from the received packet
-            Monitor monitor = (Monitor) ois.readObject();
+            // create a client socket to connect to the monitor
+            Socket clientSocket = new Socket(ip, port);
 
-            // check if the monitor does not exist in the list
-            if (!monitorList.contains(monitor)) {
-                // add the monitor to the list
-                monitorList.add(monitor);
-                // save ip address, port number and id of the monitor
-                InetAddress ip = monitor.getIp();
-                int port = monitor.getPort();
-                String id = monitor.getMonitorID();
+            // decalre streams to send and receive data
+            OutputStream os = clientSocket.getOutputStream();
+            OutputStreamWriter osw = new OutputStreamWriter(os);
+            osw.write("Requesting data from " + id + "\n");
+            osw.flush();    // request sent
 
-                // create a client socket to connect to the monitor
-                Socket clientSocket = new Socket(ip, port);
+            // declaring input stream
+            InputStream is = clientSocket.getInputStream();
+            InputStreamReader isr = new InputStreamReader(is);
 
-                // print monitor info
-                // System.out.println(monitor.monitor_str());
+            // buffer to store data received
+            StringBuffer buffer = new StringBuffer();
 
-                // decalre streams to send and receive data
-                OutputStream os = clientSocket.getOutputStream();
-                OutputStreamWriter osw = new OutputStreamWriter(os);
-                osw.write("Requesting data from " + id + "\n");
-                osw.flush();    // request sent
-
-                // declaring input stream
-                InputStream is = clientSocket.getInputStream();
-                InputStreamReader isr = new InputStreamReader(is);
-
-                // buffer to store data received
-                StringBuffer buffer = new StringBuffer();
-
-                // keep reading data from the monitor
-                while (true) {
-                    // read data from the monitor
-                    int data = isr.read();
-                    while (data != '\n') {
-                        buffer.append((char) data);
-                        data = isr.read();
-                    }
-
-                    // print data received and thread id
-                    System.out.println(buffer.toString() + " " + Thread.currentThread().getId());
-
-                    // clear buffer
-                    buffer.delete(0, buffer.length());
+            // keep reading data from the monitor
+            while (true) {
+                // read data from the monitor
+                int data = isr.read();
+                while (data != '\n') {
+                    buffer.append((char) data);
+                    data = isr.read();
                 }
 
-                // close the socket
-                // clientSocket.close();
+                // break if the monitor sends "end"
+                if (buffer.toString().equals("end")) {
+                    break;
+                }
+
+                // print data received and thread id
+                System.out.println(buffer.toString() + " :: Thread ID: " + Thread.currentThread().getId());
+                
+                // clear buffer
+                buffer.delete(0, buffer.length());
             }
+
+            // close the socket
+            clientSocket.close();
 
         } catch (Exception e) {
             e.printStackTrace();
