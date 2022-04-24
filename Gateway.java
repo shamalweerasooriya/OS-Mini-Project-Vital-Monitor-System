@@ -44,15 +44,14 @@ public class Gateway {
                 // add the monitor to the list
                 monitors.add(ipAddress + ":" + port);
 
-                // print the monitor information
-                System.out.println("Establishing connection to monitor at: " + ipAddress + ":" + port);
-
                 // create tcp thread to connect to the monitor
                 Thread tcpConnection = new Thread(new Runnable() {
                     @Override
                     public void run() {
                         // create a tcp connection to the monitor
-                        createTcpConnection(ipAddress, port, monitor.getMonitorID());
+                        synchronized (this){
+                            createTcpConnection(ipAddress, port, monitor.getMonitorID());
+                        }
                     }
                 });
 
@@ -118,11 +117,6 @@ public class Gateway {
     // create a tcp connection to the monitor
     private static void createTcpConnection(InetAddress ip, int port, String id) {
         try {
-            // save ip address, port number and id of the monitor
-            // InetAddress ip = monitor.getIp();
-            // int port = monitor.getPort();
-            // String id = monitor.getMonitorID();
-
             // create a client socket to connect to the monitor
             Socket clientSocket = new Socket(ip, port);
 
@@ -139,6 +133,8 @@ public class Gateway {
             // buffer to store data received
             StringBuffer buffer = new StringBuffer();
 
+            
+
             // keep reading data from the monitor
             while (true) {
                 // read data from the monitor
@@ -153,11 +149,9 @@ public class Gateway {
                     break;
                 }
 
-                // print data received and thread id
-                System.out.println(buffer.toString() + " :: Thread ID: " + Thread.currentThread().getId());
+                // print the data received
+                printInfo(ip, port, id, buffer);
                 
-                // clear buffer
-                buffer.delete(0, buffer.length());
             }
 
             // close the socket
@@ -166,6 +160,17 @@ public class Gateway {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    // display the data received
+    private synchronized static void printInfo(InetAddress ip, int port, String id, StringBuffer buffer) {
+        System.out.println("+-----------------------------------------------------+");
+        System.out.println("| Monitor ID    | " + id + "                              |");
+        System.out.println("| Monitor IP    | " + ip + "                        |");
+        System.out.println("| Monitor Port  | " + port + "                                |");
+        System.out.println("| Data Received | " + buffer.toString() + "    |");
+        System.out.println("+-----------------------------------------------------+");
+        buffer.delete(0, buffer.length());
     }
         
 }
