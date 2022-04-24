@@ -1,3 +1,12 @@
+/*
+ *      
+ *      CO327 : Operating Systems | Project 01 : Vital Monitor System
+ * 
+ *      DATE    : 24-4-2022
+ *      AUTHOR  : E/17/380 | S.S.Weerasooriya 
+ * 
+ */
+
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
